@@ -1,0 +1,11 @@
+[Unit]
+Description=BonDriverProxy
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/BonDriverProxy 0.0.0.0 1192
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
