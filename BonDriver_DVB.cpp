@@ -369,7 +369,7 @@ const BOOL cBonDriverDVB::OpenTuner(void)
 
 	char buf[64];
 	::sprintf(buf, "/dev/dvb/adapter%d/frontend0", g_AdapterNo);
-	m_fefd = ::open(buf, O_RDWR);
+	m_fefd = ::open(buf, O_RDWR | O_CLOEXEC);
 	if (m_fefd < 0)
 	{
 		::fprintf(stderr, "OpenTuner() frontend open() error: adapter%d\n", g_AdapterNo);
@@ -403,7 +403,7 @@ const BOOL cBonDriverDVB::OpenTuner(void)
 		goto err1;
 
 	::sprintf(buf, "/dev/dvb/adapter%d/demux0", g_AdapterNo);
-	m_dmxfd = ::open(buf, O_RDONLY);
+	m_dmxfd = ::open(buf, O_RDONLY | O_CLOEXEC);
 	if (m_dmxfd < 0)
 	{
 		::fprintf(stderr, "OpenTuner() demux open() error: adapter%d\n", g_AdapterNo);
@@ -425,7 +425,8 @@ const BOOL cBonDriverDVB::OpenTuner(void)
 	}
 
 	::sprintf(buf, "/dev/dvb/adapter%d/dvr0", g_AdapterNo);
-	m_dvrfd = ::open(buf, O_RDONLY);
+	// 休止チャンネルなどでCloseTuner()がブロックしてしまうのでO_NONBLOCKが必要
+	m_dvrfd = ::open(buf, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 	if (m_dvrfd < 0)
 	{
 		::fprintf(stderr, "OpenTuner() dvr open() error: adapter%d\n", g_AdapterNo);
@@ -750,6 +751,9 @@ void *cBonDriverDVB::TsReader(LPVOID pv)
 	timeval tv;
 	timespec ts;
 	int len, pos;
+	struct pollfd pfd;
+	pfd.fd = pDVB->m_dvrfd;
+	pfd.events = POLLIN;
 
 	if (g_UseServiceID)
 	{
@@ -841,13 +845,15 @@ void *cBonDriverDVB::TsReader(LPVOID pv)
 
 		// この不自然な位置で読み込みを行うのは、ロック/アンロックの回数を減らしつつ
 		// スレッド起動時に初回の読み込みを捨てないようにする為…
-		pBuf = pTsBuf + pos;
-		if ((len = ::read(pDVB->m_dvrfd, pBuf, TS_BUFSIZE - pos)) <= 0)
+		if((::poll(&pfd, 1, WAIT_TIME_POLL) > 0) && (pfd.revents & POLLIN))
 		{
+			pBuf = pTsBuf + pos;
+			if ((len = ::read(pDVB->m_dvrfd, pBuf, TS_BUFSIZE - pos)) > 0)
+			{
+				pos += len;
+			}
 			::nanosleep(&ts, NULL);
-			continue;
 		}
-		pos += len;
 	}
 	delete[] pTsBuf;
 
