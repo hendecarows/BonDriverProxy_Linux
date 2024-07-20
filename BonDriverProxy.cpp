@@ -896,7 +896,7 @@ void cProxyServer::makePacket(enumCommand eCmd, LPCTSTR str)
 {
 	int i;
 	for (i = 0; str[i]; i++);
-	register size_t size = (i + 1) * sizeof(TCHAR);
+	size_t size = (i + 1) * sizeof(TCHAR);
 	cPacketHolder *p = new cPacketHolder(eCmd, size);
 	::memcpy(p->m_pPacket->payload, str, size);
 	m_fifoSend.Push(p);
@@ -904,7 +904,7 @@ void cProxyServer::makePacket(enumCommand eCmd, LPCTSTR str)
 
 void cProxyServer::makePacket(enumCommand eCmd, BYTE *pSrc, DWORD dwSize, float fSignalLevel)
 {
-	register size_t size = (sizeof(DWORD) * 2) + dwSize;
+	size_t size = (sizeof(DWORD) * 2) + dwSize;
 	cPacketHolder *p = new cPacketHolder(eCmd, size);
 	union {
 		DWORD dw;

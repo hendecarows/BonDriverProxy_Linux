@@ -515,7 +515,7 @@ void cProxyClient::makePacket(enumCommand eCmd)
 
 void cProxyClient::makePacket(enumCommand eCmd, LPCSTR str)
 {
-	register size_t size = (::strlen(str) + 1);
+	size_t size = (::strlen(str) + 1);
 	cPacketHolder *p = new cPacketHolder(eCmd, size);
 	::memcpy(p->m_pPacket->payload, str, size);
 	m_fifoSend.Push(p);

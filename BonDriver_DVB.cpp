@@ -896,9 +896,9 @@ void *cBonDriverDVB::TsSplitter(LPVOID pv)
 	BYTE *pTsBuf, pPAT[TS_PKTSIZE];
 	BYTE pPMT[4104+TS_PKTSIZE];	// 4104 = 8(TSヘッダ + pointer_field + table_idからsection_length) + 4096(セクション長最大値)
 	BYTE pPMTPackets[TS_PKTSIZE*32];
-	int pos, iNumSplit;
-	unsigned char pat_ci, rpmt_ci, wpmt_ci, lpmt_version, lcat_version, ver;
-	unsigned short ltsid, pidPMT, pidEMM, pmt_tail;
+	int pos, iNumSplit = 0;
+	unsigned char pat_ci, rpmt_ci = 0, wpmt_ci, lpmt_version, lcat_version, ver;
+	unsigned short ltsid, pidPMT, pidEMM, pmt_tail = 0;
 	BOOL bChangePMT, bSplitPMT, bPMTComplete;
 	pid_set pids, save_pids[2], *p_new_pids, *p_old_pids;
 
