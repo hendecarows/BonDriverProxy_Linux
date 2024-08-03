@@ -20,10 +20,12 @@
 #include <arpa/inet.h>
 #include <dlfcn.h>
 #include <pthread.h>
+#include <getopt.h>
 #include <vector>
 #include <list>
 #include <queue>
 #include <map>
+#include <string>
 #include "typedef.h"
 #include "IBonDriver3.h"
 
@@ -40,8 +42,9 @@ namespace BonDriverProxyEx {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static char g_Host[256];
-static char g_Port[8];
+static std::string g_Host = "127.0.0.1";
+static std::string g_Port = "1192";
+static std::string g_Config;
 static size_t g_PacketFifoSize = 64;
 static DWORD g_TsPacketBufSize = (188 * 1024);
 static DWORD g_OpenTunerRetDelay;				// デフォルト値は0

@@ -19,8 +19,10 @@
 #include <arpa/inet.h>
 #include <dlfcn.h>
 #include <pthread.h>
+#include <getopt.h>
 #include <list>
 #include <queue>
+#include <string>
 #include "typedef.h"
 #include "IBonDriver3.h"
 
@@ -37,8 +39,8 @@ namespace BonDriverProxy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static char g_Host[256];
-static char g_Port[8];
+static std::string g_Host = "127.0.0.1";
+static std::string g_Port = "1192";
 static size_t g_PacketFifoSize = 64;
 static DWORD g_TsPacketBufSize = (188 * 1024);
 static BOOL g_DisableUnloadBonDriver = TRUE;	// bdplの標準はTRUEにする

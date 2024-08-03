@@ -23,3 +23,6 @@ util/cinfo
 
 # Executables
 *.out
+
+# VSCode
+.vscode/

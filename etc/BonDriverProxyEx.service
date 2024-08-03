@@ -4,8 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-; BonDriverProxyEx address port (opentuner_return_delay_time packet_fifo_size tspacket_bufsize)
-ExecStart=/usr/local/bin/BonDriverProxyEx 0.0.0.0 1192 0 64 385024
+ExecStart=/usr/local/bin/BonDriverProxyEx -a 0.0.0.0 -p 1192 -b 385024 -c /usr/local/etc/BonDriverProxyEx.conf 
 Restart=always
 
 [Install]

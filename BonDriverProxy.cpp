@@ -27,18 +27,89 @@ static void CleanUp()
 
 static int Init(int ac, char *av[])
 {
-	if (ac < 3)
-		return -1;
-	::strncpy(g_Host, av[1], sizeof(g_Host) - 1);
-	g_Host[sizeof(g_Host) - 1] = '\0';
-	::strncpy(g_Port, av[2], sizeof(g_Port) - 1);
-	g_Port[sizeof(g_Port) - 1] = '\0';
-	if (ac > 3)
+	struct option long_options[] = {
+		{"address", required_argument, NULL, 'a'},
+		{"port", required_argument, NULL, 'p'},
+		{"packet_fifo_size", required_argument, NULL, 'f'},
+		{"tspacket_buf_size", required_argument, NULL, 'b'},
+		{"help", no_argument, NULL, 'h'},
+		{0, 0, 0, 0},
+	};
+
+	while (true)
 	{
-		g_PacketFifoSize = ::atoi(av[3]);
-		if (ac > 4)
-			g_TsPacketBufSize = ::atoi(av[4]);
+		auto c = getopt_long(ac, av, "a:p:f:b:h", long_options, nullptr);
+		if (c == -1)
+			break;
+
+		switch (c)
+		{
+		case 'a':
+		{
+			g_Host = optarg;
+			break;
+		}
+
+		case 'p':
+		{
+			g_Port = optarg;
+			break;
+		}
+
+		case 'f':
+		{
+			auto val = ::atoi(optarg);
+			if (val > (int)g_PacketFifoSize)
+				g_PacketFifoSize = val;
+			break;
+		}
+
+		case 'b':
+		{
+			auto val = ::atoi(optarg);
+			if (val > (int)g_TsPacketBufSize && ((val % 188) == 0))
+			{
+				g_TsPacketBufSize = val;
+			}
+			break;
+		}
+
+		case 'h':
+		default:
+			return -1;
+		}
 	}
+
+	ac -= optind;
+	if (ac > 0)
+	{
+		// 位置引数が設定されている場合はオリジナルと同じ順序でオプションで設定された値を上書きする
+
+		g_Host = av[optind];
+
+		if (ac > 1)
+		{
+			g_Port = av[optind + 1];
+		}
+
+		if (ac > 2)
+		{
+			auto val = ::atoi(av[optind + 2]);
+			if (val > (int)g_PacketFifoSize)
+				g_PacketFifoSize = val;
+		}
+
+		if (ac > 3)
+		{
+			auto val = ::atoi(av[optind + 3]);
+			if (val > (int)g_TsPacketBufSize && ((val % 188) == 0))
+			{
+				g_TsPacketBufSize = val;
+			}
+		}
+	}
+
+
 	return 0;
 }
 
@@ -1175,7 +1246,7 @@ const BOOL cProxyServer::SetLnbPower(const BOOL bEnable)
 	return b;
 }
 
-static int Listen(char *host, char *port)
+static int Listen(const char *host, const char *port)
 {
 	addrinfo hints, *results, *rp;
 	SOCKET lsock, csock;
@@ -1223,7 +1294,6 @@ static int Listen(char *host, char *port)
 		{
 			if ((errno == EINTR) && g_bStop)
 				break;
-
 			continue;
 		}
 
@@ -1251,9 +1321,28 @@ int main(int argc, char *argv[])
 {
 	if (BonDriverProxy::Init(argc, argv) != 0)
 	{
-		fprintf(stderr, "usage: %s address port (packet_fifo_size tspacket_bufsize)\ne.g. $ %s 192.168.0.100 1192\n", argv[0],argv[0]);
+		fprintf(stderr,
+			"usage: %s [options] [address port packet_fifo_size tspacket_bufsize]\n\n"
+			"       %s -a 0.0.0.0 -p 1192 -c /usr/local/etc/BonDriverProxyEx.conf\n\n"
+			"options:\n"
+			"  -a, --address=str              listen ip address (127.0.0.1)\n"
+			"  -p, --port=str                 listen port (1192)\n"
+			"  -f, --packet_fifo_size=int     packet fifo size (64)\n"
+			"  -b, --tspacket_buf_size=int    ts packet buffer size (192512)\n"
+			"\npositional options:\n"
+			"  address                    override -a option\n"
+			"  port                       override -p option\n"
+			"  packet_fifo_size           override -f option\n"
+			"  tspacket_bufsize           override -b option\n"
+			, argv[0], argv[0]
+		);
 		return 0;
 	}
+
+	::fprintf(stderr, "host: %s\n", BonDriverProxy::g_Host.c_str());
+	::fprintf(stderr, "port: %s\n", BonDriverProxy::g_Port.c_str());
+	::fprintf(stderr, "packet fifo size: %zd\n", BonDriverProxy::g_PacketFifoSize);
+	::fprintf(stderr, "tspacket buf size: %u\n", BonDriverProxy::g_TsPacketBufSize);
 
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -1272,7 +1361,7 @@ int main(int argc, char *argv[])
 		return -3;
 	}
 
-	int ret = BonDriverProxy::Listen(BonDriverProxy::g_Host, BonDriverProxy::g_Port);
+	int ret = BonDriverProxy::Listen(BonDriverProxy::g_Host.c_str(), BonDriverProxy::g_Port.c_str());
 
 	BonDriverProxy::g_Lock.Enter();
 	BonDriverProxy::CleanUp();

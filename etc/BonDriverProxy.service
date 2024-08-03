@@ -4,8 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-; BonDriverProxy address port (packet_fifo_size tspacket_bufsize)
-ExecStart=/usr/local/bin/BonDriverProxy 0.0.0.0 1192 64 385024
+ExecStart=/usr/local/bin/BonDriverProxy -a 0.0.0.0 -p 1192 -b 385024
 Restart=always
 
 [Install]
