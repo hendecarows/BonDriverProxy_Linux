@@ -281,11 +281,13 @@ static unsigned int GetFrequency_S(int ch)
 {
 	unsigned int freq;
 	if (ch < 12)
-		freq = 1049480 + 38360 * ch;
+		freq = 1049480 + 38360 * ch;		// BS1,3,5,7,9,11,13,15,17,19,21,23
 	else if (ch < 24)
-		freq = 1613000 + 40000 * (ch - 12);
-	else if (ch < 36)
-		freq = 1593000 + 40000 * (ch - 24);
+		freq = 1613000 + 40000 * (ch - 12);	// ND2,4,6,8,10,12,14,16,18,20,22,24
+	else if (ch < 35)
+		freq = 2241660 + 38360 * (ch - 24);	// BS2,4,6,8,10,12,14,16,18,20,22
+	else if (ch < 47)
+		freq = 2766000 + 40000 * (ch - 35);	// ND1,3,5,7,9,11,13,15,17,19,21,23
 	else
 		freq = 1049480;	// 変な値なので0chに
 	return freq;
