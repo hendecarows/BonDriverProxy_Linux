@@ -141,6 +141,12 @@ int main(int argc, char *argv[])
 	sigaction(SIGTERM, &sa, NULL);
 	sigaction(SIGALRM, &sa, NULL);
 
+	// SIGPIPE を無視する
+	struct sigaction sa_pipe;
+	memset(&sa_pipe, 0, sizeof(sa_pipe));
+	sa_pipe.sa_handler = SIG_IGN; 
+	sigaction(SIGPIPE, &sa_pipe, NULL);
+
 	// 終了タイマーセット
 	alarm(sec);
 
